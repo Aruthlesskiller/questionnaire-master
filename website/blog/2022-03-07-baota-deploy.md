@@ -1,0 +1,69 @@
+---
+slug: baota-deploy
+title: 如何使用宝塔部署
+author: sunjinhan@didiglobal.com
+date: 2024-03-07T12:00
+---
+本文介绍如何使用宝塔来部署卷王。
+
+## 环境要求
+
+- mysql 版本 >= 5.6
+- jdk 版本 >= 1.8
+
+## 安装步骤
+
+### 准备安装文件
+
+本地准备好安装文件，可以通过 [gitee release 页面](https://gitee.com/surveyking/surveyking/releases) 获取最新的安装包(下载速度慢)
+1. 安装包 surveyking-v0.3.0.jar
+2. 数据库文件 init-mysql.sql
+
+![bt1](../static/img/bt-1.jpg)
+
+### 创建数据库
+
+通过宝塔面板创建数据库，记录用户名和密码。
+
+![bt2](../static/img/bt-2.jpg)
+
+选择数据库文件，并导入
+
+![bt3](../static/img/bt-3.jpg)
+
+开始导入
+
+![bt4](../static/img/bt-4.jpg)
+
+### 上传安装包
+
+上传安装包到指定的目录，如 `/www/wwwroot/surveyking`
+
+![bt5](../static/img/bt-5.jpg)
+
+### 开始安装
+
+开始创建 java 项目，选择项目 jar 路径，在项目执行命令里面输入如下命令，注意项目用户选择 root，点击确定。
+
+```bash
+/usr/bin/java -jar -Xmx512 -Xms256M /www/wwwroot/survey/surveyking-v0.x.x.jar --server.port=80 --spring.datasource.url=jdbc:mysql://10.149.76.22:8036/surveyking --spring.datasource.username=root --spring.datasource.password=DIDI2025&!@$*
+```
+
+参数说明：
+
+- `-Xmx1024M` (可选) 设置运行最大使用内存，*注意这两个参数前面只有一个* **-**
+- `-Xms256M` (可选)  设置运行最小使用内存
+- `--server.port=80` (可选) 默认端口是 80，你可以任意指定，*注意这两个参数前面有一个* **--**
+- `--spring.datasource.url=jdbc:mysql://10.149.76.22:8036/surveyking` (必须) 数据库名，选择第二步创建数据库时设置的数据库名、用户名、密码
+- `--spring.datasource.username=root` (必须) 数据库用户名
+- `--spring.datasource.password=DIDI2025&!@$*` (必须) 数据库密码
+
+![bt6](../static/img/bt-6.jpg)
+
+启动成功
+
+![bt7](../static/img/bt-7.jpg)
+
+## 获取帮助
+
+安装过程或者使用过程中有任何问题，可以加群 **1074277968** 寻求帮助。

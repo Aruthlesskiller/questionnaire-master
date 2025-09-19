@@ -1,0 +1,140 @@
+# 配置文件不能放在根目录下面，否则会被 api 的 application-dev.yml 覆盖
+# didichuxing.com 滴滴出行 问卷调查系统 配置
+# didiglobal.com  Inc.
+spring:
+  h2:
+    enabled:
+      true console:
+  datasource:
+#    username: sa
+#    password: sa
+#    port: 8033
+#    url: 10.197.30.56
+
+    username: root
+    password: DIDI2025&!@$*
+    url: jdbc:mysql://10.149.76.22:8036/surveyking?rewriteBatchedStatements=true&useUnicode=true&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    call-setters-on-nulls: false
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+
+# 邮件配置
+mail:
+    host: smtp.didiglobal.com
+    port: 587
+    username: sunjinhan@didiglobal.com
+    password: DIDI2025&!@$*
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true  
+
+# Web 应用自定义账号密码配置
+app: http://10.142.32.95
+  admin:
+    username: admin
+    password: admin@sunjinhan
+
+# nacos账号密码配置
+app: http://10.142.44.230:8081
+  admin:
+    username: admin
+    password: admin@sunjinhan
+
+# ==============================
+  # Redis 配置
+# ==============================
+  redis:
+    host: 10.142.84.35
+    port: 8089
+    password: redispass
+    database: 0
+    timeout: 2000ms
+
+xxl:
+  job:
+    admin:
+      # 调度中心地址（多个用逗号分隔）
+      addresses: http://10.172.140.82:8081
+    executor:
+      # 执行器 App 名称，调度中心根据它进行路由
+      appname: myapp-job-executor
+      # 执行器端口（默认 8080，0 表示随机）
+      port: 8080
+      # 执行器 IP（为空时自动获取机器 IP）
+      ip: ""
+      # 执行器日志路径
+      logpath: logs/xxl-job/jobhandler
+      # 执行器日志保存天数（-1 表示永久）
+      logretentiondays: 30
+    accessToken: i-mqIpRAaSxM3Yhm2Oxd0RHmQHQN83UX
+
+
+xxl:
+  job:
+    admin:
+      # 调度中心地址（多个用逗号分隔）
+      addresses: http://10.196.176.61:8081
+    executor:
+      # 执行器 App 名称，调度中心根据它进行路由
+      appname: myapp-job-executor
+      # 执行器端口（默认 8080，0 表示随机）
+      port: 8080
+      # 执行器 IP（为空时自动获取机器 IP）
+      ip: ""
+      # 执行器日志路径
+      logpath: logs/xxl-job/jobhandler
+      # 执行器日志保存天数（-1 表示永久）
+      logretentiondays: 30
+    accessToken: Gn9deXIZGZYsbMmVCvigelKYPFlAQSBh
+
+# ==============================
+# 上传文件配置
+# ==============================
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+
+# ==============================
+# 日志配置
+# ==============================
+logging:
+  level:
+    root: INFO
+    com.myapp: DEBUG
+  file:
+    name: logs/myapp-dev.log
+
+
+# ==============================
+# 缓存配置
+# ==============================
+cache:
+  type: caffeine
+  caffeine:
+    spec: maximumSize=1000,expireAfterWrite=600s
+
+
+cloud:
+    nacos:
+      discovery:
+        server-addr: 10.149.0.30:8089
+        namespace: dev-namespace-id
+        group: DEV_GROUP
+        username: nacos
+        password: nacos
+      config:
+        server-addr: 10.149.56.254:8848
+        namespace: dev-namespace-id
+        group: DEV_GROUP
+        file-extension: yaml
+        refresh-enabled: true

@@ -1,0 +1,138 @@
+package cn.surveyking.server.api;
+
+import cn.surveyking.server.core.common.PaginationResponse;
+import cn.surveyking.server.core.constant.AppConsts;
+import cn.surveyking.server.core.constant.ErrorCode;
+import cn.surveyking.server.core.exception.ErrorCodeException;
+import cn.surveyking.server.core.security.JwtTokenUtil;
+import cn.surveyking.server.core.uitls.RSAUtils;
+import cn.surveyking.server.core.uitls.SecurityContextUtils;
+import cn.surveyking.server.domain.dto.*;
+import cn.surveyking.server.service.UserService;
+import com.anji.captcha.model.common.ResponseModel;
+import com.anji.captcha.model.vo.CaptchaVO;
+import com.anji.captcha.service.CaptchaService;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * @author javahuang
+ * @date 2021/10/12
+ */
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("${api.prefix}")
+public class UserApi {
+
+    private final UserService userService;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final JwtTokenUtil jwtTokenUtil;
+
+    @PostMapping("/public/login")
+    public ResponseEntity login(@RequestBody @Valid AuthRequest request) {
+        Authentication authentication;
+        try {
+            String decryptPwd = RSAUtils.decrypt(request.getPassword());
+            authentication = new UsernamePasswordAuthenticationToken(request.getUsername(), decryptPwd);
+            Authentication authenticate = authenticationManager.authenticate(authentication);
+            UserInfo user = (UserInfo) authenticate.getPrincipal();
+            HttpCookie cookie = ResponseCookie
+                    .from(AppConsts.TOKEN_NAME, jwtTokenUtil.generateAccessToken(new UserTokenView(user.getUserId())))
+                    .path("/").httpOnly(true).build();
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .header(HttpHeaders.AUTHORIZATION,
+                            jwtTokenUtil.generateAccessToken(new UserTokenView(user.getUserId())))
+                    .build();
+        } catch (Exception e) {
+            throw new ErrorCodeException(ErrorCode.UsernameOrPasswordError);
+        }
+    }
+
+    @PostMapping("/public/logout")
+    public ResponseEntity logout() {
+        HttpCookie cookie = ResponseCookie.from(AppConsts.TOKEN_NAME, "").path("/").httpOnly(true).maxAge(0).build();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString()).build();
+    }
+
+    @PostMapping("/public/register")
+    public void register(@RequestBody RegisterRequest request) {
+        userService.register(request);
+    }
+
+    @GetMapping("/currentUser")
+    @PreAuthorize("isAuthenticated()")
+    public UserInfo currentUser() {
+        return userService.loadUserById(SecurityContextUtils.getUserId());
+    }
+
+    @GetMapping("/userOverview")
+    @PreAuthorize("isAuthenticated()")
+    public UserOverview userOverview() {
+        return userService.getUserOverviewData();
+    }
+
+    @PostMapping("/user")
+    @PreAuthorize("hasAuthority('user:update')")
+    public UserInfo updateUser(@RequestBody UserRequest request) {
+        // 只有本人才能通过调用这个接口修改个人信息
+        request.setId(SecurityContextUtils.getUserId());
+        userService.updateUser(request);
+        return userService.loadUserById(SecurityContextUtils.getUserId());
+    }
+
+    @GetMapping("/public/listRegisterRole")
+    public List<RegisterRoleView> getRegisterRoles() {
+        return userService.getRegisterRoles();
+    }
+
+    /**
+     * 导入用户
+     *
+     * @param request
+     */
+    @PostMapping("/importUser")
+    @PreAuthorize("hasAuthority('home')")
+    public void importUser(UserRequest request) {
+        userService.importUser(request);
+    }
+
+    /**
+     * 查询用户任务
+     *
+     * @param query
+     * @return
+     */
+    @GetMapping("/listUserTask")
+    @PreAuthorize("hasAuthority('home')")
+    public PaginationResponse<MyTaskView> myTask(MyTaskQuery query) {
+        return userService.queryTask(query);
+    }
+
+    /**
+     * 查询历史任务
+     *
+     * @param query
+     * @return
+     */
+    @GetMapping("/listHistoryTask")
+    public PaginationResponse<MyTaskView> myHistoryTask(MyTaskQuery query) {
+        return userService.queryHistoryTask(query);
+    }
+
+}

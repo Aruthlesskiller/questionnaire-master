@@ -1,0 +1,14 @@
+pluginManagement {
+	repositories {
+		maven { url 'https://repo.spring.io/snapshot' }
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+
+rootProject.name = 'survey-server'
+include 'api'
+include 'shared'
+include 'rdbms'
+include 'flow'
+include 'exam'

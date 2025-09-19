@@ -1,0 +1,56 @@
+plugins {
+    id 'maven-publish'
+}
+
+project.archivesBaseName = 'surveyking'
+
+ext {
+    isProd = project.hasProperty("pro")
+    isDev = project.hasProperty("dev")
+    activeProfile = project.hasProperty("pro") ? "pro" : "dev"
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    maven { url 'https://repo.spring.io/snapshot' }
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':shared')
+    implementation project(':rdbms')
+    implementation project(':ai')
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jar {
+    enabled = false
+}
+
+bootJar {
+    launchScript()
+    enabled = true
+    manifest {
+        attributes 'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher'
+    }
+}
+
+processResources {
+    // exclude resources when build prod
+    if (isProd) {
+        exclude("application-dev.yml", "generatorConfig.xml")
+    }
+    // will replace the ${activeProfile} to activeProfile value in application.yml
+    filesMatching('application.yml') {
+        expand(project.properties)
+    }
+}
